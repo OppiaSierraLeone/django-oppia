@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-oppia',
-    version='0.12.16',
+    version='0.12.17',
     packages=[
         'oppia',
         'quiz',
@@ -20,7 +20,8 @@ setup(
         'reports',
         'activitylog',
         'viz',
-        'gamification'
+        'gamification',
+        'helpers'
     ],
     include_package_data=True,
     license='GNU GPL v3 License',  # example license
@@ -44,16 +45,20 @@ setup(
     install_requires=[
         "django == 2.2.20",
         "django-tastypie == 0.14.2",
-        "tablib == 2.0.0",
-        "django-crispy-forms == 1.7.2",
+        "tablib == 3.0.0",
+        "django-crispy-forms == 1.11.2",
         "pytz",
         "defusedxml==0.5.0",
-        "Pillow==8.1.1",
-        "sorl-thumbnail==12.6.3",
+        "Pillow==8.2.0",
+        "sorl-thumbnail==12.7.0",
         "pycodestyle",
         "pytest",
         "pytest-django",
         "django-ses",
-        "openpyxl==3.0.3"
+        "openpyxl==3.0.7",
+        "reportlab==3.5.67",
+        "django-compressor==2.4.1",
+        "httpretty==1.1.1",
+        "django-sass-processor==1.0.1"
     ],
 )

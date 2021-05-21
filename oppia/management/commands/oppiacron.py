@@ -22,7 +22,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-                
+
         if options['hours']:
             hours = options['hours']
         else:
@@ -54,11 +54,14 @@ class Command(BaseCommand):
         from oppia.awards import courses_completed
         courses_completed(int(hours))
 
+        # generate pdf certificates
+        call_command('generate_certificates')
+
         # create and new media images
         call_command('generate_media_images')
 
         # clear any expired sessions
         call_command('clearsessions')
-        
+
         SettingProperties.set_string('oppia_cron_last_run', timezone.now())
         SettingProperties.delete_key('oppia_cron_lock')

@@ -14,6 +14,15 @@ from summary.models import CourseDailyStats
 class CourseDownloadsView(BaseReportTemplateView):
 
     def process(self, request, form, start_date, end_date):
+
+        daily_downloads = CourseDailyStats.objects \
+            .filter(day__gte=start_date,
+                    day__lte=end_date,
+                    type='download') \
+            .values('day') \
+            .annotate(count=Sum('total')) \
+            .order_by('day')
+
         course_downloads = CourseDailyStats.objects \
             .filter(day__gte=start_date,
                     day__lte=end_date,
@@ -34,6 +43,7 @@ class CourseDownloadsView(BaseReportTemplateView):
 
         return render(request, 'reports/course_downloads.html',
                       {'form': form,
+                       'daily_downloads': daily_downloads,
                        'course_downloads': course_downloads,
                        'previous_course_downloads':
                        previous_course_downloads})
