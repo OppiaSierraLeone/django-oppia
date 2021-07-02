@@ -1,5 +1,6 @@
 
 from django.contrib import admin
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -14,6 +15,8 @@ from oppia.models import Participant, Category, CourseCategory
 from oppia.models import Badge, Award, Points, AwardCourse, BadgeMethod
 from oppia.models import CourseCohort, CoursePublishingLog
 from oppia.models import CertificateTemplate
+
+from quiz.models import Question, QuizProps, QuizQuestion
 
 
 class TrackerAdmin(admin.ModelAdmin):
@@ -130,6 +133,7 @@ class CertificateTemplateAdmin(admin.ModelAdmin):
     list_display = ('course',
                     'badge',
                     'enabled',
+                    'display_name_method',
                     'include_name',
                     'include_date',
                     'include_course_title',
@@ -141,7 +145,27 @@ class CertificateTemplateAdmin(admin.ModelAdmin):
                            + reverse('oppia:certificate_preview',
                                      args={obj.id})
                            + ">Sample</a>")
+        
+    def get_form(self, request, obj=None, **kwargs):
+        self.instance = obj
+        return super(CertificateTemplateAdmin, self).get_form(
+            request, obj=obj, **kwargs)
 
+    # filter to only feedback questions
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'feedback_field':
+            feedback_activities = Activity.objects.filter(
+                type=Activity.FEEDBACK).values_list('digest', flat=True)
+            quizzes = QuizProps.objects.filter(name='digest',
+                                               value__in=feedback_activities) \
+                                               .values_list('quiz_id',
+                                                            flat=True)
+            kwargs['queryset'] = Question.objects.filter(
+                quizquestion__quiz__pk__in=quizzes).filter( 
+                (Q(type='essay') | Q(type='shortanswer')))
+        return super(CertificateTemplateAdmin, self).formfield_for_foreignkey(
+            db_field, request=request, **kwargs)
+    
     preview.short_description = "Preview/Test"
 
 
