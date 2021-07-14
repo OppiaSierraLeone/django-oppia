@@ -15,7 +15,6 @@ from oppia.models import Points, Course
 from oppia.models import Tracker
 from oppia.permissions import can_view_course_detail
 from oppia.views.utils import generate_graph_data
-from reports.signals import dashboard_accessed
 from summary.models import CourseDailyStats, UserCourseSummary
 
 
@@ -30,9 +29,6 @@ class CourseActivityDetail(DetailView):
 
         context = super().get_context_data(**kwargs)
         can_view_course_detail(self.request, self.object.id)
-        dashboard_accessed.send(sender=None,
-                                request=self.request,
-                                data=self.object)
 
         start_date = timezone.now() - datetime.timedelta(
             days=constants.ACTIVITY_GRAPH_DEFAULT_NO_DAYS)
@@ -126,8 +122,6 @@ class CourseRecentActivityDetail(DetailView):
                 datetime.datetime.strptime(form.cleaned_data.get("end_date"),
                                            constants.STR_DATE_FORMAT),
                 timezone.get_current_timezone())
-        else:
-            print(form.errors)
 
         form.form_method = 'get'
         context['form'] = form
@@ -136,7 +130,6 @@ class CourseRecentActivityDetail(DetailView):
 
     def get_activitylogs_page(self, start_date, end_date):
 
-        print(start_date)
         trackers = Tracker.objects.filter(course=self.object,
                                           tracker_date__gte=start_date,
                                           tracker_date__lte=end_date) \

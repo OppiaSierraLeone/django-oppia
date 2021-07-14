@@ -15,11 +15,11 @@ from oppia.models import Category, \
     Course
 from oppia.permissions import can_edit_course, \
     can_view_course, \
+    can_download_course, \
     can_view_course_detail, \
     can_view_courses_list, can_upload
 from oppia.signals import course_downloaded
 from oppia.uploader import handle_uploaded_file
-from reports.signals import dashboard_accessed
 from summary.models import UserCourseSummary
 
 
@@ -59,7 +59,6 @@ class CourseListView(ListView, AjaxTemplateResponseMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        dashboard_accessed.send(sender=None, request=self.request, data=None)
 
         course_list = context['page_obj'].object_list
         course_stats = UserCourseSummary.objects\
@@ -90,7 +89,7 @@ class CourseListView(ListView, AjaxTemplateResponseMixin):
 class CourseDownload(TemplateView):
 
     def get(self, request, course_id):
-        course = can_view_course(request, course_id)
+        course = can_download_course(request, course_id)
         file_to_download = course.getAbsPath()
         binary_file = open(file_to_download, 'rb')
         response = HttpResponse(binary_file.read(),

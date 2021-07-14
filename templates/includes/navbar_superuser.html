@@ -91,18 +91,6 @@
                 </li>
 
                 <li class="nav-item">
-                <a class="nav-link pl-5" href="{% url 'av:upload' %}">
-                  <em class="material-icons mr-3">video_library</em> {% trans 'Media' %}
-                </a>
-                </li>
-
-                <li class="nav-item">
-                <a class="nav-link pl-5" href="{% url 'content:media_embed_helper' %}">
-                  <em class="material-icons mr-3">art_track</em> {% trans 'Media Embed Helper' %}
-                </a>
-                </li>
-
-                <li class="nav-item">
                 <a class="nav-link pl-5" href="{% url 'activitylog:upload' %}">
                   <em class="material-icons mr-3">list_alt</em> {% trans 'Activity Log' %}
                 </a>
@@ -163,6 +151,19 @@
 	            </li>
 	        </ul>
         </div>
+		<div class="navdrawer-divider"></div>
+		<ul class="navdrawer-nav mb-0">
+         	<li class="nav-item">
+         	
+            <a class="nav-link" href="{% url 'serverregistration:register' %}">
+            	{% if SERVER_REGISTERED %}
+              		<em class="material-icons mr-3">app_registration</em> {% trans 'Update your server registration' %}
+              	{% else %}
+              	    <em class="material-icons mr-3">app_registration</em> {% trans 'Register your server' %}
+              	{% endif %}
+            </a>
+            </li>
+        </ul>
 		
     </div>
   </div>

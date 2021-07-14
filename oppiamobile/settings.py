@@ -52,7 +52,8 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'oppia.context_processors.get_points',
                 'oppia.context_processors.get_version',
-                'oppia.context_processors.get_settings'
+                'oppia.context_processors.get_settings',
+                'oppia.context_processors.add_dashboard_access_log'
             ],
             'debug': True,
         },
@@ -84,7 +85,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles'
 ]
 
 TIME_ZONE = 'UTC'
@@ -206,10 +207,6 @@ OPPIA_ANDROID_PACKAGEID = 'org.digitalcampus.mobile.learning'
 OPPIA_ANDROID_ON_GOOGLE_PLAY = True
 
 API_LIMIT_PER_PAGE = 0
-
-SCREENSHOT_GENERATOR_PROGRAM = "ffmpeg"
-SCREENSHOT_GENERATOR_PROGRAM_PARAMS = \
-    "-i %s -r 0.02 -s %dx%d -f image2 %s/frame-%%03d.png"
 
 MEDIA_PROCESSOR_PROGRAM = "ffprobe"
 MEDIA_PROCESSOR_PROGRAM_PARAMS = ""
