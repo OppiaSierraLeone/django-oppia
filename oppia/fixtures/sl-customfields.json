@@ -1,15 +1,41 @@
 [
 {
     "model": "profile.customfield",
+    "pk": "about_app",
+    "fields": {
+        "label": "How did you hear about the app?",
+        "required": false,
+        "order": 12,
+        "helper_text": "",
+        "type": "str",
+        "created": "2021-08-06T16:40:01.831Z",
+        "modified": "2021-08-06T16:40:01.831Z"
+    }
+},
+{
+    "model": "profile.customfield",
+    "pk": "about_app_other",
+    "fields": {
+        "label": "Please specify (How did you hear about the app)",
+        "required": false,
+        "order": 13,
+        "helper_text": "",
+        "type": "str",
+        "created": "2021-08-06T16:40:23.189Z",
+        "modified": "2021-08-06T16:40:23.189Z"
+    }
+},
+{
+    "model": "profile.customfield",
     "pk": "age_range",
     "fields": {
         "label": "Age range",
         "required": false,
-        "order": 0,
+        "order": 11,
         "helper_text": "",
         "type": "str",
         "created": "2020-10-20T15:03:53.596Z",
-        "modified": "2020-10-20T15:03:53.596Z"
+        "modified": "2021-08-06T16:39:41.240Z"
     }
 },
 {
@@ -18,63 +44,50 @@
     "fields": {
         "label": "Name to appear on certificates",
         "required": false,
-        "order": 0,
+        "order": 1,
         "helper_text": "Please enter your name exactly as you would like it to appear on any certificates you're awarded",
         "type": "str",
-        "created": "2021-07-02T16:24:46.810Z",
-        "modified": "2021-07-02T16:25:36.201Z"
+        "created": "2021-07-02T16:33:49.995Z",
+        "modified": "2021-08-06T16:33:56.744Z"
     }
 },
 {
     "model": "profile.customfield",
-    "pk": "country",
+    "pk": "civil_service_pincode",
     "fields": {
-        "label": "Country",
+        "label": "Civil service PIN code",
         "required": false,
-        "order": 0,
+        "order": 7,
         "helper_text": "",
         "type": "str",
-        "created": "2020-10-20T15:00:58.818Z",
-        "modified": "2020-10-20T15:00:58.818Z"
+        "created": "2021-08-06T16:38:28.436Z",
+        "modified": "2021-08-06T16:38:28.436Z"
     }
 },
 {
     "model": "profile.customfield",
-    "pk": "education_level",
+    "pk": "community",
     "fields": {
-        "label": "What is the highest level of education you have completed?",
+        "label": "Which best describes the community where you work?",
         "required": false,
-        "order": 0,
+        "order": 9,
         "helper_text": "",
         "type": "str",
-        "created": "2020-10-20T15:04:14.234Z",
-        "modified": "2020-10-20T15:04:14.234Z"
+        "created": "2021-08-06T16:38:58.612Z",
+        "modified": "2021-08-06T16:38:58.612Z"
     }
 },
 {
     "model": "profile.customfield",
-    "pk": "employer_name",
+    "pk": "district",
     "fields": {
-        "label": "Name of employer or institution",
+        "label": "District",
         "required": false,
-        "order": 0,
+        "order": 2,
         "helper_text": "",
         "type": "str",
-        "created": "2020-10-20T15:01:14.621Z",
-        "modified": "2020-10-20T15:01:14.621Z"
-    }
-},
-{
-    "model": "profile.customfield",
-    "pk": "employer_type",
-    "fields": {
-        "label": "Employer or institution type",
-        "required": false,
-        "order": 0,
-        "helper_text": "",
-        "type": "str",
-        "created": "2020-10-20T15:01:28.705Z",
-        "modified": "2020-10-20T15:01:28.705Z"
+        "created": "2021-08-06T16:35:06.571Z",
+        "modified": "2021-08-06T16:35:31.501Z"
     }
 },
 {
@@ -83,11 +96,11 @@
     "fields": {
         "label": "Gender",
         "required": false,
-        "order": 0,
+        "order": 10,
         "helper_text": "",
         "type": "str",
         "created": "2020-10-20T15:03:35.729Z",
-        "modified": "2020-10-20T15:03:35.729Z"
+        "modified": "2021-08-06T16:39:25.876Z"
     }
 },
 {
@@ -96,11 +109,11 @@
     "fields": {
         "label": "Profession",
         "required": false,
-        "order": 0,
+        "order": 3,
         "helper_text": "",
         "type": "str",
         "created": "2020-10-20T15:02:43.973Z",
-        "modified": "2020-10-20T15:02:43.973Z"
+        "modified": "2021-08-06T16:35:24.792Z"
     }
 },
 {
@@ -109,24 +122,50 @@
     "fields": {
         "label": "Profession (please specify)",
         "required": false,
-        "order": 0,
+        "order": 4,
         "helper_text": "",
         "type": "str",
         "created": "2020-10-20T15:03:04.236Z",
-        "modified": "2020-10-20T15:03:04.236Z"
+        "modified": "2021-08-06T16:35:41.660Z"
     }
 },
 {
     "model": "profile.customfield",
     "pk": "work_area",
     "fields": {
-        "label": "Which best describes the area where you work?",
+        "label": "Which best describes the area where you work or study?",
         "required": false,
-        "order": 0,
+        "order": 8,
         "helper_text": "",
         "type": "str",
         "created": "2020-10-20T15:03:22.342Z",
-        "modified": "2020-10-20T15:03:22.343Z"
+        "modified": "2021-08-06T16:38:00.048Z"
+    }
+},
+{
+    "model": "profile.customfield",
+    "pk": "work_place",
+    "fields": {
+        "label": "Primary place of work",
+        "required": false,
+        "order": 5,
+        "helper_text": "",
+        "type": "str",
+        "created": "2021-08-06T16:36:25.228Z",
+        "modified": "2021-08-06T16:41:48.972Z"
+    }
+},
+{
+    "model": "profile.customfield",
+    "pk": "work_place_name",
+    "fields": {
+        "label": "Name of health facility, organization, or institution where you work",
+        "required": false,
+        "order": 6,
+        "helper_text": "",
+        "type": "str",
+        "created": "2021-08-06T16:37:09.858Z",
+        "modified": "2021-08-06T16:37:09.858Z"
     }
 }
 ]
