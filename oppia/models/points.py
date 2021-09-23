@@ -60,7 +60,7 @@ class Points(models.Model):
             users_points = users_points[:count]
 
         leaderboard = []
-        for u in users_points:
+        for idx, u in enumerate(users_points):
             user = User.objects.get(pk=u['user'])
             user.badges = 0 if u['badges'] is None else u['badges']
             user.total = 0 if u['points'] is None else u['points']
@@ -81,8 +81,9 @@ class Points(models.Model):
             .order_by('-points')
 
         # check if there's going to be overlap or not
+        print(users_points.count())
         if users_points.count() <= (count_top + above + below + 1):
-            return Points.get_leaderboard()
+            return Points.get_leaderboard_top(users_points, users_points.count())
 
         leaderboard_data = Points.get_leaderboard_top(users_points, count_top)
         leaderboard_data = \
@@ -94,7 +95,7 @@ class Points(models.Model):
                                                below)
 
         return leaderboard_data
-    
+
     @staticmethod
     def get_leaderboard_top(users_points, count_top):
 
@@ -105,7 +106,7 @@ class Points(models.Model):
             user = User.objects.get(pk=u['user'])
             user.badges = 0 if u['badges'] is None else u['badges']
             user.total = 0 if u['points'] is None else u['points']
-
+            
             leader_data = {}
             leader_data['position'] = idx + 1
             leader_data['username'] = user.username
@@ -141,14 +142,14 @@ class Points(models.Model):
         # negative start_pos not supported
         if start_pos < 0:
             start_pos = 0
-            
-        # if user is already in the top count_top + below, calculate correct 
+
+        # if user is already in the top count_top + below, calculate correct
         # start and end pos
         if request_user_position <= count_top + below:
             start_pos = count_top
             end_pos = request_user_position + below
 
-        user_above_below_points = users_points[start_pos:end_pos] 
+        user_above_below_points = users_points[start_pos:end_pos]
 
         for idx, u in enumerate(user_above_below_points):
             user = User.objects.get(pk=u['user'])

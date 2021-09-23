@@ -328,32 +328,36 @@ class RegenerateCertificatesView(TemplateView):
                 raise PermissionDenied
         else:
             user = request.user
-  
+
         initial = {'email': user.email,
-                   'old_email': user.email }
+                   'old_email': user.email}
         form = RegenerateCertificatesForm(initial=initial)
         awards = Award.objects.filter(user=user)
         certificates = []
         for award in awards:
-            course = Course.objects.get(awardcourse__award=award)
+            try:
+                course = Course.objects.get(awardcourse__award=award)
+            except Course.DoesNotExist:
+                continue
             badge = award.badge
             certs = CertificateTemplate.objects.filter(course=course,
                                                        badge=badge,
                                                        enabled=True)
-            
+
             for cert in certs:
                 certificate = {}
                 certificate['course'] = course
                 certificate['badge'] = badge
                 valid, display_name = cert.display_name(user)
                 certificate['display_name'] = display_name
+                certificate['cert_link'] = award.certificate_pdf
                 certificates.append(certificate)
-                
+
         return render(request, 'profile/certificates/regenerate.html',
-                          {'user': user,
-                           'form': form,
-                           'certificates': certificates})
-        
+                      {'user': user,
+                       'form': form,
+                       'certificates': certificates})
+
     def post(self, request, user_id=None):
         if user_id:
             if can_edit_user(request, user_id):
@@ -362,15 +366,15 @@ class RegenerateCertificatesView(TemplateView):
                 raise PermissionDenied
         else:
             user = request.user
-            
+
         # update email address if changed
         old_email = request.POST.get("old_email")
         new_email = request.POST.get("email")
         if old_email != new_email:
             user.email = new_email
             user.save()
-            
+
         user_command = "--user=" + str(user.id)
         call_command('generate_certificates', user_command, stdout=StringIO())
-        
+
         return HttpResponseRedirect('success/')

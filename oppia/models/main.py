@@ -122,17 +122,28 @@ class Course(models.Model):
                                        type=Activity.QUIZ)
         return quiz
 
-
     def get_removed_quizzes(self):
-        current_quizzes = Activity.objects.filter(section__course=self, type=Activity.QUIZ).values_list('digest', flat=True)
-        old_quizzes_digests = Tracker.objects.filter(course=self, type=Activity.QUIZ).exclude(digest__in=current_quizzes).values_list('digest', flat=True)
-        quizzes = Quiz.objects.filter(quizprops__name='digest', quizprops__value__in=old_quizzes_digests)
+        current_quizzes = Activity.objects.filter(
+            section__course=self,
+            type=Activity.QUIZ).values_list('digest', flat=True)
+        old_quizzes_digests = Tracker.objects.filter(course=self,
+                                                     type=Activity.QUIZ) \
+            .exclude(digest__in=current_quizzes).values_list('digest',
+                                                             flat=True)
+        quizzes = Quiz.objects.filter(quizprops__name='digest',
+                                      quizprops__value__in=old_quizzes_digests)
         return quizzes
 
     def get_removed_feedbacks(self):
-        current_quizzes = Activity.objects.filter(section__course=self, type=Activity.FEEDBACK).values_list('digest', flat=True)
-        old_quizzes_digests = Tracker.objects.filter(course=self, type=Activity.FEEDBACK).exclude(digest__in=current_quizzes).values_list('digest', flat=True)
-        quizzes = Quiz.objects.filter(quizprops__name='digest', quizprops__value__in=old_quizzes_digests)
+        current_quizzes = Activity.objects.filter(
+            section__course=self,
+            type=Activity.FEEDBACK).values_list('digest', flat=True)
+        old_quizzes_digests = Tracker.objects.filter(course=self,
+                                                     type=Activity.FEEDBACK) \
+            .exclude(digest__in=current_quizzes).values_list('digest',
+                                                             flat=True)
+        quizzes = Quiz.objects.filter(quizprops__name='digest',
+                                      quizprops__value__in=old_quizzes_digests)
         return quizzes
 
     def get_categories(self):
@@ -622,20 +633,21 @@ class Tracker(models.Model):
                         .filter(instance_id=data['instance_id'],
                                 user=user) \
                         .order_by('-submitted_date').first()
-                    quiz.setAttribute('score', str(quiz_attempt.score))
-                    quiz.setAttribute('maxscore',
-                                      str(quiz_attempt.maxscore))
-                    quiz.setAttribute('submitteddate',
-                                      quiz_attempt
-                                      .submitted_date
-                                      .strftime('%Y-%m-%d %H:%M:%S'))
-                    quiz.setAttribute('passed', str(t.completed))
-                    quiz.setAttribute("course", course.shortname)
-                    quiz.setAttribute("event", quiz_attempt.event)
-                    quiz.setAttribute("points", str(quiz_attempt.points))
-                    quiz.setAttribute("timetaken",
-                                      str(quiz_attempt.time_taken))
-                    track.appendChild(quiz)
+                    if quiz_attempt:
+                        quiz.setAttribute('score', str(quiz_attempt.score))
+                        quiz.setAttribute('maxscore',
+                                          str(quiz_attempt.maxscore))
+                        quiz.setAttribute('submitteddate',
+                                          quiz_attempt
+                                          .submitted_date
+                                          .strftime('%Y-%m-%d %H:%M:%S'))
+                        quiz.setAttribute('passed', str(t.completed))
+                        quiz.setAttribute("course", course.shortname)
+                        quiz.setAttribute("event", quiz_attempt.event)
+                        quiz.setAttribute("points", str(quiz_attempt.points))
+                        quiz.setAttribute("timetaken",
+                                          str(quiz_attempt.time_taken))
+                        track.appendChild(quiz)
                 except QuizAttempt.DoesNotExist:
                     pass
                 except json.JSONDecodeError:
