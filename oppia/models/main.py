@@ -230,21 +230,13 @@ class Course(models.Model):
         tracker_viewed = Tracker.objects.filter(
             course=course,
             user=user,
-            digest__in=media.values_list('digest')) \
+            digest__in=media.values_list('digest'),
+            completed=True) \
             .values_list('digest') \
             .distinct() \
             .count()
 
-        event_viewed = 0
-        for m in media:
-            media = Tracker.objects.filter(course=course,
-                                           user=user,
-                                           data__contains=m.filename,
-                                           event='media_played')
-            if media.exists:
-                event_viewed += 1
-
-        return max(event_viewed, tracker_viewed)
+        return tracker_viewed
 
 
 class CoursePermissions(models.Model):
@@ -429,12 +421,8 @@ class Activity(models.Model):
 
     def get_no_quiz_responses(self):
         # get the actual quiz id
-        try:
-            quiz = Quiz.objects.get(quizprops__name='digest',
-                                    quizprops__value=self.digest)
-        except Quiz.DoesNotExist:
-            return 0
-        return QuizAttempt.objects.filter(quiz_id=quiz.id).count()
+        quiz = Quiz.objects.filter(quizprops__name='digest', quizprops__value=self.digest).first()
+        return QuizAttempt.objects.filter(quiz_id=quiz.id).count() if quiz is not None else 0
 
 
 class Media(models.Model):
@@ -505,6 +493,7 @@ class Tracker(models.Model):
                             default=None)
     completed = models.BooleanField(default=False)
     time_taken = models.IntegerField(default=0)
+    course_version = models.BigIntegerField(null=True, blank=True)
     activity_title = models.TextField(blank=True,
                                       null=True,
                                       default=None)
