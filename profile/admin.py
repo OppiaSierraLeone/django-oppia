@@ -6,11 +6,11 @@ from profile.models import UserProfile, CustomField, UserProfileCustomField
 
 
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'can_upload', 'about', 'job_title', 'organisation')
+    list_display = ('user', 'can_upload', 'about', 'job_title', 'organisation', 'phone_number')
 
 
 class CustomFieldAdmin(admin.ModelAdmin):
-    list_display = ('id', 'label', 'order', 'type')
+    list_display = ('id', 'label', 'order', 'type', 'required')
 
 
 class UserProfileCustomFieldAdmin(admin.ModelAdmin):
