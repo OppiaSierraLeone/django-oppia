@@ -444,7 +444,7 @@ def parse_and_save_activity(request,
     digest = activity_node.get("digest")
     existed = False
     try:
-        activity = Activity.objects.get(digest=digest)
+        activity = Activity.objects.get(digest=digest, section__course__shortname=course.shortname)
         existed = True
     except Activity.DoesNotExist:
         activity = Activity()
@@ -484,10 +484,7 @@ def parse_and_save_activity(request,
                             data=msg_text).save()
 
     if (activity_type == "quiz") or (activity_type == "feedback"):
-        updated_json = parse_and_save_quiz(request,
-                                           user,
-                                           activity,
-                                           activity_node)
+        updated_json = parse_and_save_quiz(user, activity, activity_node)
         # we need to update the JSON contents both in the XML and in the
         # activity data
         activity_node.find("content").text = \
@@ -517,7 +514,7 @@ def parse_and_save_activity(request,
                                 data=msg_text).save()
 
 
-def parse_and_save_quiz(req, user, activity, act_xml):
+def parse_and_save_quiz(user, activity, act_xml):
     """
     Parses an Activity XML that is a Quiz and saves it to the DB
     :parm user: the user that uploaded the course
@@ -546,6 +543,9 @@ def parse_and_save_quiz(req, user, activity, act_xml):
 
     if quiz_existed:
         quiz = quizzes.first()
+        # If the quiz already existed (same digest) we can update the questions based on its
+        # current titles, assuming they haven't changed
+        update_quiz_questions(quiz, quiz_obj)
     else:
         quiz = create_quiz(user, quiz_obj)
 
@@ -554,7 +554,6 @@ def parse_and_save_quiz(req, user, activity, act_xml):
     create_or_update_quiz_props(quiz, quiz_obj)
 
     return json.dumps(quiz_obj)
-
 
 
 def create_quiz(user, quiz_obj):
@@ -658,7 +657,8 @@ def clean_old_course(req, user, oldsections, old_course_filename, course):
 def create_or_update_quiz_props(quiz, quiz_obj):
     for prop in quiz_obj['props']:
         if prop != 'id':
-            qprop, created = QuizProps.objects.get_or_create(quiz=quiz, name=prop)
+            qprop, created = QuizProps.objects.get_or_create(quiz=quiz,
+                                                             name=prop)
             qprop.value = quiz_obj['props'][prop]
             qprop.save()
 
@@ -704,3 +704,27 @@ def create_quiz_questions(user, quiz, quiz_obj):
                         response=response, name=prop,
                         value=r['props'][prop]
                     ).save()
+
+
+def update_quiz_questions(quiz, quiz_obj):
+    for q in quiz_obj['questions']:
+        try:
+            question = Question.objects.filter(
+                type=q['question']['type'],
+                title=clean_lang_dict(q['question']['title']),
+                quiz=quiz).first()
+            if question is not None:
+                quiz_question, created = QuizQuestion.objects.get_or_create(
+                    quiz=quiz, question=question, order=q['order'])
+                q['id'] = quiz_question.pk
+                q['question']['id'] = question.pk
+    
+                for prop in q['question']['props']:
+                    if prop != 'id':
+                        qprop, created = QuestionProps.objects.get_or_create(question=question, name=prop)
+                        qprop.value = q['question']['props'][prop]
+                        qprop.save()
+
+
+        except Question.DoesNotExist:
+            continue
