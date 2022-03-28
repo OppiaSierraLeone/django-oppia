@@ -9,6 +9,7 @@ from django.db.models.functions import TruncDay, \
 from django.utils import timezone
 
 from oppia.models import Tracker, Points, Course
+from oppia import constants
 from settings.models import SettingProperties
 from summary.models import UserCourseSummary, \
     CourseDailyStats, \
@@ -126,6 +127,7 @@ class Command(BaseCommand):
         user_courses = Tracker.objects \
             .filter(pk__gt=last_tracker_pk, pk__lte=newest_tracker_pk) \
             .exclude(course__isnull=True) \
+            .exclude(type=constants.STR_TRACKER_TYPE_DOWNLOAD) \
             .values('course', 'user').distinct()
 
         total_users = user_courses.count()
@@ -368,11 +370,13 @@ class Command(BaseCommand):
 
         time_spent = Tracker.objects.annotate(
             day=TruncDate(tracker_date_field)) \
-            .filter(day=tracker['day'], user=user_obj) \
+            .filter(day=tracker['day'], user=user_obj, course=course) \
             .aggregate(time=Sum('time_taken'))
 
         # to avoid number out of no seconds in a day
-        if time_spent['time'] > self.MAX_TIME:
+        if time_spent['time'] is None:
+            return
+        elif time_spent['time'] > self.MAX_TIME:
             time_taken = self.MAX_TIME
         else:
             time_taken = time_spent['time']

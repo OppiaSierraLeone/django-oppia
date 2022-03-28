@@ -17,7 +17,9 @@ class Command(BaseCommand):
     help = 'Regenerate course structure, parsing again its XML'
 
     def add_arguments(self, parser):
-        parser.add_argument('shortname', type=str, help='Shortname of the course to parse again')
+        parser.add_argument('shortname',
+                            type=str,
+                            help='Shortname of the course to parse again')
 
     def handle(self, *args, **options):
 
@@ -27,10 +29,11 @@ class Command(BaseCommand):
         course_count = Activity.objects.filter(section__course=course).count()
         act_count = Activity.objects.all().count()
         quiz_count = Quiz.objects.all().count()
-        print('Count: {} course activities, {} total, {} quizzes'.format(course_count, act_count, quiz_count))
+        print("Count: {} course activities, {} total, {} quizzes"
+              .format(course_count, act_count, quiz_count))
 
         extract_path = os.path.join(settings.COURSE_UPLOAD_DIR,
-                                    'temp','0')
+                                    'temp', '0')
 
         try:
             zip_file = ZipFile(course.getAbsPath())
@@ -49,6 +52,9 @@ class Command(BaseCommand):
         oldsections = list(Section.objects.filter(course=course)
                            .values_list('pk', flat=True))
 
+        # add in any baseline activities
+        self.parse_baseline_activities(xml_doc, course, False)
+
         # add all the sections and activities
         structure = xml_doc.find("structure")
         self.process_course_sections(structure, course, False)
@@ -60,9 +66,8 @@ class Command(BaseCommand):
         course_count = Activity.objects.filter(section__course=course).count()
         act_count = Activity.objects.all().count()
         quiz_count = Quiz.objects.all().count()
-        print('Count: {} course activities, {} total, {} quizzes'.format(course_count, act_count, quiz_count))
-
-
+        print("Count: {} course activities, {} total, {} quizzes"
+              .format(course_count, act_count, quiz_count))
 
     def process_course_sections(self, structure, course, new_course):
         for index, section in enumerate(structure.findall("section")):
@@ -87,6 +92,23 @@ class Command(BaseCommand):
             for act in activities.findall("activity"):
                 self.parse_and_save_activity(course, section, act, False)
 
+    def parse_baseline_activities(self, xml_doc, course, new_course):
+
+        for meta in xml_doc.findall('meta')[:1]:
+            activity_nodes = meta.findall("activity")
+            if len(activity_nodes) > 0:
+                section = Section(
+                    course=course,
+                    title='{"en": "Baseline"}',
+                    order=0
+                )
+                section.save()
+                for activity_node in activity_nodes:
+                    self.parse_and_save_activity(course,
+                                                 section,
+                                                 activity_node,
+                                                 new_course,
+                                                 True)
 
     def parse_and_save_activity(self,
                                 course,
@@ -122,7 +144,8 @@ class Command(BaseCommand):
 
         digest = activity_node.get("digest")
         try:
-            activity = Activity.objects.get(digest=digest, section__course__shortname=course.shortname)
+            activity = Activity.objects.get(
+                digest=digest, section__course__shortname=course.shortname)
         except Activity.DoesNotExist:
             activity = Activity()
 
@@ -137,7 +160,8 @@ class Command(BaseCommand):
         activity.description = description
 
         if (activity_type == "quiz") or (activity_type == "feedback"):
-            updated_json = parse_and_save_quiz(user=None, activity=activity, act_xml=activity_node)
+            updated_json = parse_and_save_quiz(
+                user=None, activity=activity, act_xml=activity_node)
             # we need to update the JSON contents both in the XML and in the
             # activity data
             activity_node.find("content").text = \

@@ -1,7 +1,7 @@
-# oppia/profile/models.py
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 from oppia.models import Participant, CoursePermissions
 
@@ -13,6 +13,8 @@ class UserProfile(models.Model):
     job_title = models.TextField(blank=True, null=True, default=None)
     organisation = models.TextField(blank=True, null=True, default=None)
     phone_number = models.TextField(blank=True, null=True, default=None)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def get_can_upload(self):
         if self.user.is_staff:
@@ -60,7 +62,8 @@ class UserProfile(models.Model):
         custom_fields = CustomField.objects.all()
         for custom_field in custom_fields:
             if custom_field.id in fields_dict and (
-                (fields_dict[custom_field.id] != '' and fields_dict[custom_field.id] != None)
+                (fields_dict[custom_field.id] != ''
+                 and fields_dict[custom_field.id] is not None)
                     or custom_field.required is True
             ):
 

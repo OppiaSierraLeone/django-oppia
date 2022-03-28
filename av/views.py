@@ -53,19 +53,19 @@ class CourseMediaList(ListView, ListItemUrlMixin, AjaxTemplateResponseMixin):
 
 
 def download_media_file(request, course_id, media_id):
-    course = can_view_course(request, course_id)
     media = Media.objects.get(pk=media_id)
-    uploaded = UploadedMedia.objects.filter(md5=media.digest).first()
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="%s"' \
                                       % (media.filename)
     return response
 
+
 def download_course_media(request, course_id):
     course = can_view_course(request, course_id)
     media = Media.objects.filter(course=course)
-    uploaded = UploadedMedia.objects.filter(md5__in=media.values_list('digest', flat=True))
+    uploaded = UploadedMedia.objects.filter(
+        md5__in=media.values_list('digest', flat=True))
     for file in uploaded:
         file.media = media.get(digest=file.md5)
 
