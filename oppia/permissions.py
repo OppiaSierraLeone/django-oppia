@@ -173,7 +173,8 @@ def can_download_course(request, course_id):
             try:
                 course = Course.objects.get(pk=course_id,
                                             is_draft=False,
-                                            is_archived=False)
+                                            is_archived=False,
+                                            new_downloads_enabled=True)
             except Course.DoesNotExist:
                 course = Course.objects.get(
                     pk=course_id,
@@ -228,11 +229,10 @@ def can_view_courses_list(request, order_by='title'):
             coursepermissions__user=request.user,
             coursepermissions__role=CoursePermissions.MANAGER) \
             .order_by(order_by)
-        if manager_courses.count() > 0:
+        if manager_courses.exists():
             return manager_courses
 
-        courses = Course.objects.filter(is_draft=False,
-                                        is_archived=False).order_by(order_by)
+        courses = Course.objects.filter(is_draft=False, is_archived=False).order_by(order_by)
     return courses
 
 
