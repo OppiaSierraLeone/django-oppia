@@ -6,7 +6,7 @@ import os
 import xml.etree.ElementTree as ET
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from oppia.models import Course, Activity, Section, Media
 from oppia.uploader import get_activity_content, parse_and_save_quiz
@@ -160,8 +160,7 @@ class Command(BaseCommand):
         activity.description = description
 
         if (activity_type == "quiz") or (activity_type == "feedback"):
-            updated_json = parse_and_save_quiz(
-                user=None, activity=activity, act_xml=activity_node)
+            updated_json = parse_and_save_quiz(user=None, activity=activity)
             # we need to update the JSON contents both in the XML and in the
             # activity data
             activity_node.find("content").text = \

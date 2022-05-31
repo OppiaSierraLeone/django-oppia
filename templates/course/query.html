@@ -18,19 +18,21 @@
     {% else %}
         <strong>{{ item.title|title_lang:LANGUAGE_CODE }}</strong>
     {% endif %}
-    {% include "common/info_badges.html" with course=item %}<br/>
+    {% include "common/info_badge.html" with course=item %}<br/>
 <small>{% trans 'Categories:' %} {{ item.get_categories }}</small>
 </td>
 <td>{{ item.lastupdated_date }} </td>
 <td>{{ item.total_downloads|default:0 }} downloads by {{ item.distinct_downloads|default:0 }} users<br/>
-    {% if not item.is_archived %}
+    {% if CourseStatus.ARCHIVED not in item.status %}
     	<a href="{% url 'oppia:course_download' item.id %}">{% trans 'download course' %}</a>
     {% endif %}
 </td>
 <td class="py-1">
     {% if item.can_edit %}
         <a href="{% url 'oppia:course_edit' item.id %}" data-toggle="tooltip" title="{% trans 'Edit' %}" class="btn btn-inline btn-outline-primary"><em class="fas fa-2x fa-edit"></em> </a>
-        <a href="{% url 'oppia_gamification_edit_course' item.id %}" data-toggle="tooltip" title="{% trans 'Edit Gamification' %}" class="btn btn-inline btn-outline-primary"><em class="fas fa-2x fa-gamepad"></em></a>
+        {% if item.can_edit_gamification %}
+            <a href="{% url 'oppia_gamification_edit_course' item.id %}" data-toggle="tooltip" title="{% trans 'Edit Gamification' %}" class="btn btn-inline btn-outline-primary"><em class="fas fa-2x fa-gamepad"></em></a>
+        {% endif %}
     {% endif %}
 </td>
 {% endblock %}

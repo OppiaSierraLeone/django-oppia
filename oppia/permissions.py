@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseForbidden
 
 from oppia.models import Course, Participant, Cohort, CoursePermissions
+from oppia.utils.filters import CourseFilter
 from profile.models import UserProfile
 
 
@@ -110,7 +111,7 @@ def can_add_cohort(request):
     return False
 
 
-def can_edit_cohort(request, cohort_id):
+def can_edit_cohort(request):
     if request.user.is_staff:
         return True
     return False
@@ -152,14 +153,15 @@ def can_view_course(request, course_id):
             course = Course.objects.get(pk=course_id)
         else:
             try:
-                course = Course.objects.get(pk=course_id, is_archived=False)
+                course = Course.objects.filter(CourseFilter.IS_NOT_ARCHIVED).get(pk=course_id)
             except Course.DoesNotExist:
-                course = Course.objects.get(
-                    pk=course_id,
-                    is_archived=False,
-                    coursepermissions__course__id=course_id,
-                    coursepermissions__user__id=request.user.id,
-                    coursepermissions__role=CoursePermissions.VIEWER)
+                course = Course.objects \
+                    .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                    .get(
+                        pk=course_id,
+                        coursepermissions__course__id=course_id,
+                        coursepermissions__user__id=request.user.id,
+                        coursepermissions__role=CoursePermissions.VIEWER)
     except Course.DoesNotExist:
         raise Http404
     return course
@@ -168,20 +170,22 @@ def can_view_course(request, course_id):
 def can_download_course(request, course_id):
     try:
         if request.user.is_staff:
-            course = Course.objects.get(pk=course_id, is_archived=False)
+            course = Course.objects \
+                .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                .get(pk=course_id)
         else:
             try:
-                course = Course.objects.get(pk=course_id,
-                                            is_draft=False,
-                                            is_archived=False,
-                                            new_downloads_enabled=True)
+                course = Course.objects \
+                    .filter(CourseFilter.IS_NOT_DRAFT & CourseFilter.IS_NOT_ARCHIVED & CourseFilter.NEW_DOWNLOADS_ENABLED) \
+                    .get(pk=course_id)
+
             except Course.DoesNotExist:
-                course = Course.objects.get(
-                    pk=course_id,
-                    is_archived=False,
-                    coursepermissions__course__id=course_id,
-                    coursepermissions__user__id=request.user.id,
-                    coursepermissions__role=CoursePermissions.VIEWER)
+                course = Course.objects \
+                    .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                    .get(pk=course_id,
+                         coursepermissions__course__id=course_id,
+                         coursepermissions__user__id=request.user.id,
+                         coursepermissions__role=CoursePermissions.VIEWER)
     except Course.DoesNotExist:
         raise Http404
     return course
@@ -204,6 +208,25 @@ def can_view_course_detail(request, course_id):
             return course
         except Course.DoesNotExist:
             raise PermissionDenied
+
+
+def can_view_course_activity(request, course_id):
+    try:
+        if request.user.is_staff:
+            return Course.objects.filter(pk=course_id).exists()
+        else:
+            try:
+                return Course.objects.filter(CourseFilter.IS_NOT_ARCHIVED & CourseFilter.IS_NOT_DRAFT).filter(pk=course_id).exists()
+            except Course.DoesNotExist:
+                return Course.objects \
+                    .filter(CourseFilter.IS_NOT_ARCHIVED & CourseFilter.IS_NOT_DRAFT) \
+                    .filter(
+                    pk=course_id,
+                    coursepermissions__course__id=course_id,
+                    coursepermissions__user__id=request.user.id,
+                    coursepermissions__role=CoursePermissions.VIEWER).exists()
+    except Course.DoesNotExist:
+        return False
 
 
 def can_edit_course(request, course_id):
@@ -232,9 +255,17 @@ def can_view_courses_list(request, order_by='title'):
         if manager_courses.exists():
             return manager_courses
 
-        courses = Course.objects.filter(is_draft=False, is_archived=False).order_by(order_by)
+        courses = Course.objects.filter(CourseFilter.IS_NOT_DRAFT & CourseFilter.IS_NOT_ARCHIVED).order_by(order_by)
     return courses
 
 
+def can_edit_course_gamification(request, course_id):
+    return can_edit_course(request, course_id) \
+           and Course.objects.filter(CourseFilter.IS_NOT_ARCHIVED & CourseFilter.NEW_DOWNLOADS_ENABLED & CourseFilter.IS_NOT_READ_ONLY)\
+               .filter(pk=course_id).exists()
+
+
+# Sonarcloud raises a code smell that the request and exception params here 
+# are redundant, however, Django requires them
 def oppia_403_handler(request, exception):
     return HttpResponseForbidden('403.html')

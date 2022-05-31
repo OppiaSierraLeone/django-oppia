@@ -1,12 +1,12 @@
 
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from settings import constants
 from settings.models import SettingProperties
 
 
-def menu_reports(request):
+def menu_reports():
     # add in here any reports that need to appear
 
     reports = [{'name': _(u'User Registrations'),

@@ -1,7 +1,7 @@
-from django.conf.urls import url
 from django.contrib.auth.models import User
 from django.http import JsonResponse, Http404
-from django.utils.translation import ugettext_lazy as _
+from django.urls.conf import re_path
+from django.utils.translation import gettext_lazy as _
 
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import ReadOnlyAuthorization
@@ -29,10 +29,10 @@ class UserCourseSummaryResource(ModelResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<username>\w[\w/-]*)/$"
-                % (self._meta.resource_name),
-                self.wrap_view('user_course_progress'),
-                name="user_course_progress")
+            re_path(r"^(?P<resource_name>%s)/(?P<username>\w[\w/-]*)/$"
+                    % (self._meta.resource_name),
+                    self.wrap_view('user_course_progress'),
+                    name="user_course_progress")
             ]
 
     def get_user(self, request, **kwargs):

@@ -11,9 +11,9 @@ from tastypie.test import ResourceTestCaseMixin
 
 from tests.utils import get_api_key, \
     get_api_url, \
-    update_course_visibility, \
-    update_course_owner, update_course_new_downloads_enabled
-from oppia.models import Tracker, Course
+    update_course_status, \
+    update_course_owner
+from oppia.models import Tracker, Course, CourseStatus
 
 
 class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
@@ -130,57 +130,73 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_enabled_normal_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.user_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_enabled_staff_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.staff_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_enabled_teacher_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.teacher_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_enabled_admin_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.admin_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_disabled_normal_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.user_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_disabled_staff_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.staff_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_disabled_teacher_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.teacher_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
 
     def test_course_get_single_new_downloads_disabled_admin_visible(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        resp = self.perform_request(1, self.admin_auth)
+        self.assertHttpOK(resp)
+        self.assertValidJSON(resp.content)
+
+    def test_course_get_single_read_only_normal_visible(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.user_auth)
+        self.assertHttpOK(resp)
+        self.assertValidJSON(resp.content)
+
+    def test_course_get_single_read_only_staff_visible(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.staff_auth)
+        self.assertHttpOK(resp)
+        self.assertValidJSON(resp.content)
+
+    def test_course_get_single_read_only_teacher_visible(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.teacher_auth)
+        self.assertHttpOK(resp)
+        self.assertValidJSON(resp.content)
+
+    def test_course_get_single_read_only_admin_visible(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
         resp = self.perform_request(1, self.admin_auth)
         self.assertHttpOK(resp)
         self.assertValidJSON(resp.content)
@@ -198,50 +214,62 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertHttpNotFound(resp)
 
     def test_download_course_new_downloads_enabled_normal(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_enabled_teacher(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_enabled_staff(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_enabled_admin(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, True)
+        update_course_status(1, CourseStatus.LIVE)
         resp = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_disabled_normal(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_disabled_teacher(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_disabled_staff(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
         resp = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
     def test_download_course_new_downloads_disabled_admin(self):
-        update_course_visibility(1, False, False)
-        update_course_new_downloads_enabled(1, False)
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        resp = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(resp)
+
+    def test_download_course_read_only_normal(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(resp)
+
+    def test_download_course_read_only_teacher(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(resp)
+
+    def test_download_course_read_only_staff(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
+        resp = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(resp)
+
+    def test_download_course_read_only_admin(self):
+        update_course_status(1, CourseStatus.READ_ONLY)
         resp = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(resp)
 
@@ -268,7 +296,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_live_course_staff(self):
         tracker_count_start = Tracker.objects.all().count()
@@ -277,7 +305,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_live_course_teacher(self):
         tracker_count_start = Tracker.objects.all().count()
@@ -286,7 +314,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_live_course_normal(self):
         tracker_count_start = Tracker.objects.all().count()
@@ -295,31 +323,31 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_draft_course_admin(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, True, False)
+        update_course_status(1, CourseStatus.DRAFT)
         response = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(response)
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_draft_course_staff(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, True, False)
+        update_course_status(1, CourseStatus.DRAFT)
         response = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(response)
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_draft_course_teacher(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, True, False)
+        update_course_status(1, CourseStatus.DRAFT)
         response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
         tracker_count_end = Tracker.objects.all().count()
@@ -327,18 +355,18 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
 
     def test_draft_course_teacher_owner(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, True, False)
+        update_course_status(1, CourseStatus.DRAFT)
         update_course_owner(1, self.teacher.id)
         response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
         self.assertHttpOK(response)
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_draft_course_normal(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, True, False)
+        update_course_status(1, CourseStatus.DRAFT)
         response = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
         tracker_count_end = Tracker.objects.all().count()
@@ -346,7 +374,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
 
     def test_archived_course_admin(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, False, True)
+        update_course_status(1, CourseStatus.ARCHIVED)
         response = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
         tracker_count_end = Tracker.objects.all().count()
@@ -354,7 +382,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
 
     def test_archived_course_staff(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, False, True)
+        update_course_status(1, CourseStatus.ARCHIVED)
         response = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
         tracker_count_end = Tracker.objects.all().count()
@@ -362,7 +390,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
 
     def test_archived_course_teacher(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, False, True)
+        update_course_status(1, CourseStatus.ARCHIVED)
         response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
         tracker_count_end = Tracker.objects.all().count()
@@ -370,9 +398,111 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
 
     def test_archived_course_normal(self):
         tracker_count_start = Tracker.objects.all().count()
-        update_course_visibility(1, False, True)
+        update_course_status(1, CourseStatus.ARCHIVED)
         response = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
         self.assertEqual(response.status_code, 404)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_new_downloads_disabled_course_admin(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        response = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_new_downloads_disabled_course_staff(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        response = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_new_downloads_disabled_course_teacher(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_new_downloads_disabled_course_teacher_owner(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        update_course_owner(1, self.teacher.id)
+        response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_new_downloads_disabled_course_normal(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.NEW_DOWNLOADS_DISABLED)
+        response = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_read_only_course_admin(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.READ_ONLY)
+        response = self.perform_request(1, self.admin_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_read_only_course_staff(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.READ_ONLY)
+        response = self.perform_request(1, self.staff_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_read_only_course_teacher(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.READ_ONLY)
+        response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_read_only_course_teacher_owner(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.READ_ONLY)
+        update_course_owner(1, self.teacher.id)
+        response = self.perform_request(1, self.teacher_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
+        tracker_count_end = Tracker.objects.all().count()
+        self.assertEqual(tracker_count_start, tracker_count_end)
+
+    def test_read_only_course_normal(self):
+        tracker_count_start = Tracker.objects.all().count()
+        update_course_status(1, CourseStatus.READ_ONLY)
+        response = self.perform_request(1, self.user_auth, self.STR_DOWNLOAD)
+        self.assertHttpOK(response)
+        self.assertEqual(response['content-type'],
+                         self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
         self.assertEqual(tracker_count_start, tracker_count_end)
 
@@ -412,7 +542,7 @@ class CourseResourceTest(ResourceTestCaseMixin, TransactionTestCase):
         self.assertEqual(response['content-type'],
                          self.STR_ZIP_EXPECTED_CONTENT_TYPE)
         tracker_count_end = Tracker.objects.all().count()
-        self.assertEqual(tracker_count_start+1, tracker_count_end)
+        self.assertEqual(tracker_count_start, tracker_count_end)
 
     def test_dne_course_shortname_normal(self):
         tracker_count_start = Tracker.objects.all().count()

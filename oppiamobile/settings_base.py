@@ -149,9 +149,11 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, "oppia", "locale")
 ]
 
-LANGUAGES = ('en', _('English'))
+LANGUAGES = [('en', _('English'))]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Login and logout settings
 # https://docs.djangoproject.com/en/1.11/ref/settings/#login-redirect-url

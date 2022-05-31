@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 def send_oppia_email(
@@ -10,7 +10,6 @@ def send_oppia_email(
         template_html=None,
         template_text=None,
         subject="",
-        fail_silently=False,
         recipients=[],
         attachment_from_model=None,
         **context):
@@ -22,7 +21,6 @@ def send_oppia_email(
         template_html: path to HTML body template
         template_text: path to text body template
         subject: email subject, not including prefex
-        fail_silently: boolean, should send_mail fail silently
         recipients: a list or iterable of email addresses
         **context: dictionary providing email template context
 

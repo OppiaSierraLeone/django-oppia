@@ -4,7 +4,7 @@ import os
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
 from av import handler
@@ -52,7 +52,7 @@ class CourseMediaList(ListView, ListItemUrlMixin, AjaxTemplateResponseMixin):
         return context
 
 
-def download_media_file(request, course_id, media_id):
+def download_media_file(media_id):
     media = Media.objects.get(pk=media_id)
 
     response = HttpResponse()

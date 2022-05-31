@@ -12,18 +12,18 @@ import xml.etree.ElementTree as ET
 from django.conf import settings
 from django.contrib import messages
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from gamification.models import CourseGamificationEvent, \
                                 ActivityGamificationEvent, \
                                 MediaGamificationEvent
 from gamification.xml_writer import GamificationXMLWriter
 from oppia.models import Course, \
-                         Section, \
-                         Activity, \
-                         Media, \
-                         CoursePublishingLog, \
-                         CoursePermissions
+    Section, \
+    Activity, \
+    Media, \
+    CoursePublishingLog, \
+    CoursePermissions, CourseStatus
 from oppia.utils.course_file import unescape_xml
 from quiz.models import Quiz, \
                         Question, \
@@ -196,7 +196,7 @@ def process_course(extract_path, f, mod_name, request, user):
 
     except Course.DoesNotExist:
         course = Course()
-        course.is_draft = True
+        course.status = CourseStatus.DRAFT
         new_course = True
 
     old_course_version = course.version
@@ -485,7 +485,7 @@ def parse_and_save_activity(request,
                             data=msg_text).save()
 
     if (activity_type == "quiz") or (activity_type == "feedback"):
-        updated_json = parse_and_save_quiz(user, activity, activity_node)
+        updated_json = parse_and_save_quiz(user, activity)
         # we need to update the JSON contents both in the XML and in the
         # activity data
         activity_node.find("content").text = \
@@ -515,11 +515,11 @@ def parse_and_save_activity(request,
                                 data=msg_text).save()
 
 
-def parse_and_save_quiz(user, activity, act_xml):
+def parse_and_save_quiz(user, activity):
     """
-    Parses an Activity XML that is a Quiz and saves it to the DB
+    Parses activity content that is a Quiz and saves it to the DB
     :parm user: the user that uploaded the course
-    :param activity: a XML DOM element containing the activity
+    :param activity: an activity object that contains the quiz as a json object
     :return: None
     """
 

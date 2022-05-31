@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from oppia.management import commands
 from oppia.models import Tracker
@@ -65,7 +65,7 @@ class Command(BaseCommand):
             u.first_name = "User"
             u.last_name = u.id
             u.email = "user" + str(u.id) + "@oppia-mobile.org"
-            u.password = make_password(time.time())
+            u.password = make_password(str(time.time()))
             try:
                 u.save()
             except IntegrityError:

@@ -6,11 +6,11 @@ import xmltodict
 import zipfile
 
 from django.conf import settings
-from django.conf.urls import url
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.http import HttpResponse, Http404
-from django.utils.translation import ugettext_lazy as _
+from django.urls.conf import re_path
+from django.utils.translation import gettext_lazy as _
 from tastypie import fields
 from tastypie.authentication import ApiKeyAuthentication, Authentication
 from tastypie.authorization import ReadOnlyAuthorization, Authorization
@@ -19,7 +19,7 @@ from tastypie.utils import trailing_slash
 
 from api.serializers import CourseJSONSerializer
 from oppia.models import Tracker, Course, CourseCategory
-from oppia.signals import course_downloaded
+from oppia.utils.filters import CourseFilter
 
 STR_COURSE_NOT_FOUND = _(u"Course not found")
 
@@ -46,13 +46,12 @@ class CourseResource(ModelResource):
                   'title',
                   'version',
                   'shortname',
+                  'status',
                   'priority',
-                  'is_draft',
                   'description',
                   'author',
                   'username',
-                  'organisation',
-                  'new_downloads_enabled']
+                  'organisation']
         authentication = ApiKeyAuthentication()
         authorization = ReadOnlyAuthorization()
         serializer = CourseJSONSerializer()
@@ -75,24 +74,23 @@ class CourseResource(ModelResource):
 
     def get_object_list(self, request):
         if request.user.is_staff:
-            return Course.objects.filter(is_archived=False) \
+            return Course.objects.filter(CourseFilter.IS_NOT_ARCHIVED) \
                 .order_by('-priority', 'title')
         else:
-            return Course.objects.filter(is_archived=False) \
-                .filter(
-                        Q(is_draft=False) |
-                        (Q(is_draft=True) & Q(user=request.user))) \
+            return Course.objects.filter(CourseFilter.IS_NOT_ARCHIVED) \
+                .filter(CourseFilter.IS_NOT_DRAFT | (CourseFilter.IS_DRAFT & Q(user=request.user))) \
                 .order_by('-priority', 'title')
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$"
-                % (self._meta.resource_name, trailing_slash()),
-                self.wrap_view('download_course'), name="api_download_course"),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/activity%s$"
-                % (self._meta.resource_name, trailing_slash()),
-                self.wrap_view('download_activity'),
-                name="api_download_activity"),
+            re_path(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$"
+                    % (self._meta.resource_name, trailing_slash()),
+                    self.wrap_view('download_course'),
+                    name="api_download_course"),
+            re_path(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/activity%s$"
+                    % (self._meta.resource_name, trailing_slash()),
+                    self.wrap_view('download_activity'),
+                    name="api_download_activity"),
         ]
 
     def get_course(self, request, **kwargs):
@@ -102,30 +100,33 @@ class CourseResource(ModelResource):
         pk = kwargs.pop('pk', None)
         try:
             if request.user.is_staff:
-                course = self._meta.queryset.get(pk=pk, is_archived=False)
+                course = self._meta.queryset \
+                    .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                    .get(pk=pk)
             else:
                 course = self._meta.queryset \
                     .filter(
-                            Q(is_draft=False) |
-                            (Q(is_draft=True) & Q(user=request.user)) |
-                            (Q(is_draft=True)
-                             & Q(coursepermissions__user=request.user))) \
-                    .distinct().get(pk=pk, is_archived=False)
+                            CourseFilter.IS_NOT_DRAFT |
+                            (CourseFilter.IS_DRAFT & Q(user=request.user)) |
+                            (CourseFilter.IS_DRAFT & Q(coursepermissions__user=request.user))) \
+                    .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                    .distinct().get(pk=pk)
         except Course.DoesNotExist:
             raise Http404(STR_COURSE_NOT_FOUND)
         except ValueError:
             try:
                 if request.user.is_staff:
-                    course = self._meta.queryset.get(shortname=pk,
-                                                     is_archived=False)
+                    course = self._meta.queryset \
+                        .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                        .get(shortname=pk)
                 else:
                     course = self._meta.queryset \
                         .filter(
-                                Q(is_draft=False) |
-                                (Q(is_draft=True) & Q(user=request.user)) |
-                                (Q(is_draft=True)
-                                 & Q(coursepermissions__user=request.user))) \
-                        .distinct().get(shortname=pk, is_archived=False)
+                                CourseFilter.IS_NOT_DRAFT |
+                                (CourseFilter.IS_DRAFT & Q(user=request.user)) |
+                                (CourseFilter.IS_DRAFT & Q(coursepermissions__user=request.user))) \
+                        .filter(CourseFilter.IS_NOT_ARCHIVED) \
+                        .distinct().get(shortname=pk)
             except Course.DoesNotExist:
                 raise Http404(STR_COURSE_NOT_FOUND)
 
@@ -161,8 +162,6 @@ class CourseResource(ModelResource):
                 'attachment; filename="%s"' % (course.filename)
         except IOError:
             raise Http404(STR_COURSE_NOT_FOUND)
-
-        course_downloaded.send(sender=self, course=course, request=request)
 
         return response
 
@@ -217,7 +216,7 @@ class CourseCategoryResource(ModelResource):
 class CourseStructureResource(ModelResource):
 
     class Meta:
-        queryset = Course.objects.filter(is_draft=False, is_archived=False)
+        queryset = Course.objects.filter(CourseFilter.IS_NOT_DRAFT & CourseFilter.IS_NOT_ARCHIVED)
         resource_name = 'coursestructure'
         allowed_methods = ['get']
         fields = ['shortname',

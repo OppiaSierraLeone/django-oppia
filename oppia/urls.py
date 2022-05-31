@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.conf.urls import url
 from django.urls import path
 from django.views import static
 from django.views.generic import TemplateView
@@ -46,6 +45,10 @@ urlpatterns = [
     path('certificate/preview/<int:certificate_template_id>/', views.PreviewCertificateView.as_view(), name="certificate_preview"),
     path('certificate/validate/<str:validation_uuid>/', views.ValidateCertificateView.as_view(), name="certificate_validate"),
 
-    path('view/', views.AppLauncherDetailView.as_view(), name="app_launch_activity_redirect"),
-    url(r'^media/(?P<path>.*)$', static.serve, {'document_root': settings.MEDIA_ROOT}),
+    path('view/',
+         views.AppLauncherDetailView.as_view(),
+         name="app_launch_activity_redirect"),
+    path('media/<str:path>',
+         static.serve,
+         {'document_root': settings.MEDIA_ROOT}),
 ]

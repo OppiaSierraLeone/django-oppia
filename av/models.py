@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 
@@ -55,10 +55,3 @@ def uploaded_media_delete_file(sender, instance, **kwargs):
         os.remove(file_to_delete)
     except OSError:
         pass
-
-
-def image_file_name(instance, filename):
-    return os.path.join('uploaded/images',
-                        filename[0:2],
-                        filename[2:4],
-                        filename)

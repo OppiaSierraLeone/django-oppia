@@ -5,7 +5,7 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from quiz.models import Question
 
@@ -44,7 +44,6 @@ class Quiz(models.Model):
         return no_attempts
 
     def avg_score(self):
-        # TODO - sure this could be tidied up
         attempts = QuizAttempt.objects.filter(quiz=self)
         total = 0
         for a in attempts:

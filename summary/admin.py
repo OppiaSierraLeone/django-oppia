@@ -3,9 +3,12 @@ from django.contrib import admin
 from summary.models import UserCourseSummary, \
                            CourseDailyStats, \
                            UserPointsSummary, \
-                           DailyActiveUsers, \
                            DailyActiveUser, \
+                           DailyActiveUsers, \
                            UserCourseDailySummary
+
+from helpers.mixins.PermissionMixins import ReadOnlyAdminMixin
+
 
 STR_UPDATE_SUMMARY = "Update summary"
 
@@ -19,7 +22,7 @@ def message_user(model, request, model_name, query_count):
                            model_name + " summaries successfully updated.")
 
 
-class UserCourseSummaryAdmin(admin.ModelAdmin):
+class UserCourseSummaryAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('user',
                     'course',
                     'points',
@@ -40,7 +43,7 @@ class UserCourseSummaryAdmin(admin.ModelAdmin):
     update_summary.short_description = STR_UPDATE_SUMMARY
 
 
-class CourseDailyStatsAdmin(admin.ModelAdmin):
+class CourseDailyStatsAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('course', 'day', 'type', 'total')
     date_hierarchy = 'day'
     ordering = '-day',
@@ -55,7 +58,7 @@ class CourseDailyStatsAdmin(admin.ModelAdmin):
     update_summary.short_description = STR_UPDATE_SUMMARY
 
 
-class UserPointsAdmin(admin.ModelAdmin):
+class UserPointsSummaryAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('user', 'points', 'badges')
     ordering = '-points',
     actions = ['update_summary']
@@ -68,17 +71,17 @@ class UserPointsAdmin(admin.ModelAdmin):
     update_summary.short_description = STR_UPDATE_SUMMARY
 
 
-class DailyActiveUsersAdmin(admin.ModelAdmin):
+class DailyActiveUsersAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('day', 'total_submitted_date', 'total_tracker_date')
     ordering = ['-day']
     date_hierarchy = 'day'
 
 
-class DailyActiveUserAdmin(admin.ModelAdmin):
+class DailyActiveUserAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('dau', 'user', 'type', 'time_spent', 'course')
     ordering = ['-dau']
 
-class UserCourseDailySummaryAdmin(admin.ModelAdmin):
+class UserCourseDailySummaryAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('day',
                     'user',
                     'course',
@@ -91,7 +94,7 @@ class UserCourseDailySummaryAdmin(admin.ModelAdmin):
 
 admin.site.register(UserCourseSummary, UserCourseSummaryAdmin)
 admin.site.register(CourseDailyStats, CourseDailyStatsAdmin)
-admin.site.register(UserPointsSummary, UserPointsAdmin)
+admin.site.register(UserPointsSummary, UserPointsSummaryAdmin)
 admin.site.register(DailyActiveUsers, DailyActiveUsersAdmin)
 admin.site.register(DailyActiveUser, DailyActiveUserAdmin)
 admin.site.register(UserCourseDailySummary, UserCourseDailySummaryAdmin)
