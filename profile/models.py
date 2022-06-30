@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from datarecovery.models import DataRecovery
 from oppia.models import Participant, CoursePermissions
 
 
@@ -15,9 +16,11 @@ class UserProfile(models.Model):
     phone_number = models.TextField(blank=True, null=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    exclude_from_reporting = models.BooleanField(default=False,
-         verbose_name=_('Exclude from reporting'),
-         help_text=_('If checked, the activity from this user will not be taken into account for summary calculations and reports'))
+    exclude_from_reporting = models.BooleanField(
+        default=False,
+        verbose_name=_('Exclude from reporting'),
+        help_text=_('If checked, the activity from this user will not be taken into account for summary calculations '
+                    'and reports'))
 
     def get_can_upload(self):
         if self.user.is_staff:
@@ -45,7 +48,7 @@ class UserProfile(models.Model):
         return teacher.exists() and not manager.exists()
 
     def update_customfields(self, fields_dict):
-
+        errors = []
         custom_fields = CustomField.objects.all()
         for custom_field in custom_fields:
             if custom_field.id in fields_dict and (
@@ -64,6 +67,12 @@ class UserProfile(models.Model):
                     profile_field.value_str = fields_dict.get(custom_field.id, None)
 
                 profile_field.save()
+
+        missing_fields = [field for field in fields_dict if field not in custom_fields.values_list('id', flat=True).all()]
+        if missing_fields:
+            errors.append(DataRecovery.Reason.CUSTOM_PROFILE_FIELDS_NOT_DEFINED_IN_THE_SERVER + str(missing_fields))
+
+        return errors
 
 
 class CustomField(models.Model):

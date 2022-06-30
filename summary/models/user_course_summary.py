@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum, Count, QuerySet
+from django.db.models import Sum, Count, QuerySet, Q
 from django.utils.translation import gettext_lazy as _
 
 from oppia import constants
@@ -75,6 +75,14 @@ class UserCourseSummary (models.Model):
             'no_points': 0,
             'no_badges': 0, }
 
+    @staticmethod
+    def get_excluded_users():
+        # Returns a list of user PKs to be excluded when calculating summaries
+        # We avoid using the admin users and users that explicitly we want to exclude from summaries
+        return User.objects \
+            .filter(Q(is_staff=True) | Q(is_superuser=True) | Q(userprofile__exclude_from_reporting=True)) \
+            .distinct().values_list('pk', flat=True)
+
     def update_summary(self,
                        last_tracker_pk=0, newest_tracker_pk=0,
                        # range of tracker ids to process
@@ -85,13 +93,16 @@ class UserCourseSummary (models.Model):
         first_tracker = (last_tracker_pk == 0)
         first_points = (last_points_pk == 0)
 
-        self_trackers = Tracker.objects.filter(user=self.user, course=self.course, pk__gt=last_tracker_pk, pk__lte=newest_tracker_pk)
+        self_trackers = Tracker.objects.filter(user=self.user,
+                                               course=self.course,
+                                               pk__gt=last_tracker_pk,
+                                               pk__lte=newest_tracker_pk)
 
         activity_trackers = self_trackers.exclude(type=constants.STR_TRACKER_TYPE_DOWNLOAD)
 
         # Add the values that are directly obtained from the last pks
         self.total_activity = (0 if first_tracker else self.total_activity) + activity_trackers.count()
-        self.total_downloads = (0 if first_tracker else self.total_downloads)  + self_trackers.filter(
+        self.total_downloads = (0 if first_tracker else self.total_downloads) + self_trackers.filter(
                 type=constants.STR_TRACKER_TYPE_DOWNLOAD).count()
 
         filters = {
@@ -119,7 +130,6 @@ class UserCourseSummary (models.Model):
 
         # update total_activity_current and total_activity_previous
         self.update_current_previous_activity()
-
 
     def update_current_previous_activity(self):
         # get the current activity digests

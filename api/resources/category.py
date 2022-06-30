@@ -9,7 +9,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
 
-from oppia.models import Course, Category
+from oppia.models import Course, Category, CoursePermissions
 
 from api.resources.course import CourseResource
 from oppia.utils.filters import CourseCategoryFilter, CourseFilter
@@ -48,7 +48,8 @@ class CategoryResource(ModelResource):
                 & CourseCategoryFilter.COURSE_IS_NOT_ARCHIVED
                 & (CourseCategoryFilter.COURSE_IS_NOT_DRAFT
                    | (CourseCategoryFilter.COURSE_IS_DRAFT & Q(coursecategory__course__user=request.user))
-                   | (CourseCategoryFilter.COURSE_IS_DRAFT & Q(coursecategory__course__coursepermissions__user=request.user))
+                   | (CourseCategoryFilter.COURSE_IS_DRAFT &
+                      Q(coursecategory__course__coursepermissions__user=request.user))
                    )
                 ) \
                 .distinct().order_by('-order_priority', 'name')
@@ -104,8 +105,9 @@ class CategoryResource(ModelResource):
         if bundle.request.user.is_staff:
             count = tmp.count()
         else:
-            count = tmp.filter(
-                CourseFilter.IS_NOT_DRAFT | (CourseFilter.IS_DRAFT & Q(user=bundle.request.user))).count()
+            count = tmp.filter(CourseFilter.IS_NOT_DRAFT
+                               | (CourseFilter.IS_DRAFT & Q(user=bundle.request.user))
+                               | (CourseFilter.IS_DRAFT & Q(pk__in=CoursePermissions.objects.filter(user=bundle.request.user).values('course')))).count()
         return count
 
     def dehydrate_icon(self, bundle):
@@ -115,10 +117,21 @@ class CategoryResource(ModelResource):
             return None
 
     def dehydrate_count_new_downloads_enabled(self, bundle):
-        return Course.objects.filter(category=bundle.obj).filter(CourseFilter.NEW_DOWNLOADS_ENABLED).count()
+        courses = Course.objects.filter(category=bundle.obj).filter(CourseFilter.IS_NOT_ARCHIVED)
+
+        if not bundle.request.user.is_staff:
+            courses = courses.filter(CourseFilter.IS_NOT_DRAFT
+                                     | Q(pk__in=CoursePermissions.objects.filter(user=bundle.request.user).values('course')))
+
+        return courses.filter(category=bundle.obj).filter(CourseFilter.NEW_DOWNLOADS_ENABLED).count()
 
     def dehydrate_course_statuses(self, bundle):
-        courses = Course.objects.filter(category=bundle.obj)
+        courses = Course.objects.filter(category=bundle.obj).filter(CourseFilter.IS_NOT_ARCHIVED)
+
+        if not bundle.request.user.is_staff:
+            courses = courses.filter(CourseFilter.IS_NOT_DRAFT \
+                                     | Q(pk__in=CoursePermissions.objects.filter(user=bundle.request.user).values('course')))
+
         return {course.shortname: course.status for course in courses}
 
     def alter_list_data_to_serialize(self, request, data):

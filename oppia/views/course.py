@@ -10,7 +10,7 @@ from django.views.generic import TemplateView, ListView, DetailView, FormView
 
 from helpers.mixins.AjaxTemplateResponseMixin import AjaxTemplateResponseMixin
 from oppia.forms.upload import UploadCourseStep1Form, UploadCourseStep2Form
-from oppia.models import Category, CourseCategory, CoursePublishingLog, Course, CourseStatus
+from oppia.models import Category, CourseCategory, CoursePublishingLog, Course
 from oppia.permissions import can_edit_course, can_download_course, can_view_course_detail, can_view_courses_list, \
     can_upload, can_edit_course_gamification
 from oppia.uploader import handle_uploaded_file
@@ -113,7 +113,7 @@ class UploadStep1(CanUploadCoursePermission, FormView):
     def form_valid(self, form):
         user = self.request.user
         extract_path = os.path.join(settings.COURSE_UPLOAD_DIR, 'temp', str(user.id))
-        course, resp = handle_uploaded_file(self.request.FILES['course_file'], extract_path, self.request, user)
+        course, resp, is_new_course = handle_uploaded_file(self.request.FILES['course_file'], extract_path, self.request, user)
         if course:
             CoursePublishingLog(course=course,
                                 user=user,
