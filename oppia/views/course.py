@@ -4,11 +4,13 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 
 from helpers.mixins.AjaxTemplateResponseMixin import AjaxTemplateResponseMixin
+from oppia.forms.edit import EditCourseForm
+from helpers.mixins.SafePaginatorMixin import SafePaginatorMixin
 from oppia.forms.upload import UploadCourseStep1Form, UploadCourseStep2Form
 from oppia.models import Category, CourseCategory, CoursePublishingLog, Course
 from oppia.permissions import can_edit_course, can_download_course, can_view_course_detail, can_view_courses_list, \
@@ -18,7 +20,7 @@ from oppia.utils.filters import CourseFilter
 from summary.models import UserCourseSummary
 
 
-class CourseListView(ListView, AjaxTemplateResponseMixin):
+class CourseListView(SafePaginatorMixin, ListView, AjaxTemplateResponseMixin):
 
     template_name = 'course/list.html'
     ajax_template_name = 'course/query.html'
@@ -86,6 +88,17 @@ class CourseListView(ListView, AjaxTemplateResponseMixin):
         return context
 
 
+class ManageCourseList(CourseListView):
+    template_name = 'course/list_page.html'
+    ajax_template_name = 'course/list_page.html'
+    paginate_by = 5
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ajax_url'] = reverse_lazy('oppia:course_manage')
+        return context
+
+
 class CourseDownload(TemplateView):
 
     def get(self, request, course_id):
@@ -113,7 +126,10 @@ class UploadStep1(CanUploadCoursePermission, FormView):
     def form_valid(self, form):
         user = self.request.user
         extract_path = os.path.join(settings.COURSE_UPLOAD_DIR, 'temp', str(user.id))
-        course, resp, is_new_course = handle_uploaded_file(self.request.FILES['course_file'], extract_path, self.request, user)
+        course, resp, is_new_course = handle_uploaded_file(self.request.FILES['course_file'],
+                                                           extract_path,
+                                                           self.request,
+                                                           user)
         if course:
             CoursePublishingLog(course=course,
                                 user=user,
@@ -144,10 +160,11 @@ class CourseFormView(CanEditCoursePermission, FormView):
 
     def get_initial(self):
         return {'categories': self.course.get_categories(),
-                'status': self.course.status}
+                'status': self.course.status,
+                'restricted': self.course.restricted}
 
     def form_valid(self, form):
-        self.update_course_tags(form, self.course, self.request.user)
+        self.update_course(form, self.course, self.request.user)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -155,10 +172,11 @@ class CourseFormView(CanEditCoursePermission, FormView):
         context['course_title'] = self.course.title
         return context
 
-    def update_course_tags(self, form, course, user):
-        categories = form.cleaned_data.get("categories", "").strip().split(",")
-        status = form.cleaned_data.get("status")
-        course.status = status
+    def update_course(self, form, course, user):
+        categories = form.cleaned_data.get('categories', '').strip().split(',')
+        if self.extra_context is not None and self.extra_context.get('editing', False):
+            course.status = form.cleaned_data.get('status')
+        course.restricted = form.cleaned_data.get('restricted')
         course.save()
         # remove any existing tags
         CourseCategory.objects.filter(course=course).delete()
@@ -177,6 +195,7 @@ class CourseFormView(CanEditCoursePermission, FormView):
 
 
 class EditCourse(CourseFormView):
+    form_class = EditCourseForm
     extra_context = {
         'editing': True,
         'title': _(u'Edit course')

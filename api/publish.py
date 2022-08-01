@@ -144,6 +144,14 @@ def publish_view(request):
                             data=msg_text).save()
         return HttpResponse(status=401)
 
+    validate_request_status_field(request)
+    result = validate_course_status_availability(request, user)
+    if result is False:
+        response_data = {
+            'messages': get_messages_array(request)
+        }
+        return JsonResponse(response_data, status=400)
+
     course, status_code, is_new_course = handle_uploaded_file(
         course_file,
         extract_path,
@@ -163,13 +171,6 @@ def publish_view(request):
         return JsonResponse(response_data, status=status)
 
     else:
-        errors = validate_course_status(course, request, is_new_course)
-        if errors:
-            return JsonResponse({'errors': errors}, status=400)
-        else:
-            course.status = CourseStatus.DRAFT if is_request_status_draft(request) else CourseStatus.LIVE
-            course.save()
-
         # remove any existing tags
         CourseCategory.objects.filter(course=course).delete()
 
@@ -204,24 +205,29 @@ def get_messages_array(request):
     return response if valid else errors
 
 
-def validate_course_status(course, request, is_new_course):
+def validate_course_status_availability(request, user):
     """
-    When publishing an existing course:
-      - Prevent publishing if the course is in ARCHIVED, NEW_DOWNLOADS_DISABLED or READ_ONLY status.
-      - Prevent publishing if the course is in DRAFT status and the request status is different from DRAFT.
+    Prevent publishing if the course is in DRAFT status and the DRAFT status is not active in the server.
     """
-    error_msg = []
+    result = True
 
-    if is_new_course:
-        # Don't apply status validations on a new course
-        return error_msg
+    request_course_status = request.POST['status']
+    if request_course_status == CourseStatus.DRAFT and CourseStatus.DRAFT not in settings.OPPIA_AVAILABLE_COURSE_STATUSES:
+        error_msg = "Cannot publish a 'draft' course because 'draft' is not an active status in the server.\n" \
+                         f"Valid statuses are: {settings.OPPIA_AVAILABLE_COURSE_STATUSES}"
+        messages.error(request, error_msg)
+        CoursePublishingLog(user=user if user else None,
+                            action="invalid_course_status",
+                            data=error_msg).save()
+        result = False
 
-    if course.status in [CourseStatus.ARCHIVED, CourseStatus.NEW_DOWNLOADS_DISABLED, CourseStatus.READ_ONLY] \
-            or (course.status == CourseStatus.DRAFT and not is_request_status_draft(request)):
-        error_msg.append(f"This course currently has {course.status} status, so cannot now be updated.")
-
-    return error_msg
+    return result
 
 
-def is_request_status_draft(request) -> bool:
-    return request.POST['is_draft'].lower() == "true"
+def validate_request_status_field(request):
+    request_copy = request.POST.copy()
+    if request.POST['is_draft'].lower() == "true":
+        request_copy.update({'status': 'draft'})
+    else:
+        request_copy.update({'status': 'live'})
+    request.POST = request_copy
