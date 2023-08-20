@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-oppia',
-    version='0.14.10',
+    version='0.14.11',
     packages=[
         'oppia',
         'quiz',
@@ -43,8 +43,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
-        "django == 3.2.18",
-        "django-tastypie == 0.14.4",
+        "django == 4.2.1",
+        "django-tastypie == 0.14.5",
         "tablib == 3.4.0",
         "django-crispy-forms == 1.14.0",
         "pytz",
@@ -54,7 +54,7 @@ setup(
         "pycodestyle",
         "pytest",
         "pytest-django",
-        "django-ses==3.3.0",
+        "django-ses==3.5.0",
         "openpyxl==3.1.2",
         "reportlab==3.6.12",
         "django-compressor==4.3.1",
