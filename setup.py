@@ -43,7 +43,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
-        "django == 4.2.11",
+        "django == 4.2.14",
         "django-tastypie == 0.14.6",
         "tablib == 3.6.0",
         "django-crispy-forms == 1.14.0",
@@ -65,7 +65,7 @@ setup(
         "xmltodict==0.13.0",
         "django-storages==1.14.2",
         "django-database-view==0.3.0",
-        "djangorestframework==3.15.1",
+        "djangorestframework==3.15.2",
         "django-filter==23.5"
     ],
 )

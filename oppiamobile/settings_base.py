@@ -188,6 +188,15 @@ LOGIN_EXEMPT_URLS = (
 # OppiaMobile Settings
 COURSE_UPLOAD_DIR = os.path.join(ROOT_DIR, 'upload')
 
+# External storage
+OPPIA_EXTERNAL_STORAGE = False
+
+OPPIA_EXTERNAL_STORAGE_MEDIA_ROOT = None  # only used if OPPIA_EXTERNAL_STORAGE is set to True
+OPPIA_EXTERNAL_STORAGE_MEDIA_URL = None  # only used if OPPIA_EXTERNAL_STORAGE is set to True
+
+OPPIA_EXTERNAL_STORAGE_COURSE_ROOT = None  # only used if OPPIA_EXTERNAL_STORAGE is set to True
+OPPIA_EXTERNAL_STORAGE_COURSE_URL = None  # only used if OPPIA_EXTERNAL_STORAGE is set to True
+
 OPPIA_METADATA = {
     'NETWORK': False,
     'DEVICE_ID': False,
